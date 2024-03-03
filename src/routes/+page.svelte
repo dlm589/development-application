@@ -17,6 +17,8 @@
     let application_url = [];
     let popupContent = false;
     let query = ""; //This is the input address from users.
+    let distance = ""; // This is the input for buffer distance
+    let dist;
     let lat;
     let lon;
     let results;
@@ -72,7 +74,15 @@
                 type: "circle",
                 source: "development",
                 paint: {
-                    "circle-color": "#1e3765",
+                    "circle-color": [
+                        "match",
+                        ["get", "APPLICATION_TYPE"],
+                        "OZ",
+                        "#1e3765",
+                        "SA",
+                        "#2a6f97",
+                        "#a9d6e5",
+                    ],
                     "circle-radius": 5,
                 },
                 //before: "transit-line-bold-ID",
@@ -83,29 +93,21 @@
                 source: "development",
                 filter: ["==", ["get", "APPLICATION#"], ""],
                 paint: {
-                    "circle-color": "#0047AB",
+                    "circle-color": [
+                        "match",
+                        ["get", "APPLICATION_TYPE"],
+                        "OZ",
+                        "#1e3765",
+                        "SA",
+                        "#2a6f97",
+                        "#a9d6e5",
+                    ],
                     "circle-radius": 5,
                     "circle-stroke-color": "red",
                     "circle-stroke-width": 2,
                 },
                 //before: "transit-line-bold-ID",
-            }); /*
-            map.addSource("parcel", {
-                type: "geojson",
-                data: property_boundary,
             });
-            map.addLayer({
-                id: "parcel-lines",
-                type: "line",
-                source: "parcel",
-                layout: {},
-                paint: {
-                    "line-color": "#DC4633", // Border color
-                    "line-width": 4, // Border width
-                },
-                //before: "transit-line-bold-ID",
-            });
-            // map libre is not really smart, you will have to create a symbol layer to label your circle layer*/
         });
 
         map.fitBounds([
@@ -118,6 +120,13 @@
         map.on("mouseleave", "development-ID", () => {
             map.getCanvas().style.cursor = "";
         });
+        map.on("click", (e)=>{
+            if (!e.features || e.features.length === 0) {
+        // Close properties here
+        console.log('Clicked elsewhere on the map');
+      }
+        })
+
         map.on("click", "development-ID", (e) => {
             const tolerance = 0.0; // Adjust the tolerance as needed
             const clickedPoint = e.point;
@@ -166,56 +175,50 @@
         "https://nominatim.openstreetmap.org/search.php?format=jsonv2&q=";
 
     const getResults = async () => {
-        results = await fetch(baseUrl + query + ", Toronto").then((res) => res.json());
+        results = await fetch(baseUrl + query + ", Toronto").then((res) =>
+            res.json(),
+        );
+        console.log("Old:", lon, lat, dist);
         if (results.length > 0) {
             //this is to remove the previous address point searched (if true)
             if (map.getSource(`address ${lon}`)) {
                 map.removeSource(`address ${lon}`);
                 map.removeLayer(`address-layer ${lon}`);
-                map.removeSource(`buffer ${lon}`);
-                map.removeLayer(`buffer-layer ${lon}`);
+                map.removeSource(`buffer ${lon} ${dist}`);
+                map.removeLayer(`buffer-layer ${lon} ${dist}`);
             }
-
+            if (distance ==""){
+                distance = 500
+            }
+            dist = distance;
             //get long - lat
             lat = +results[0].lat;
             lon = +results[0].lon;
-            console.log(lat, lon); /*
-            map.flyTo({
-                // These options control the ending camera position: centered at
-                // the target, at zoom level 16, and north up.
-                center: [lon, lat],
-                zoom: 16,
-                bearing: 0,
-                // These options control the flight curve, making it move slowly and zoom out almost completely before starting
-                // to pan.
-                speed: 2, // make the flying slow
-                curve: 1, // change the speed at which it zooms out
-                // This can be any easing function: it takes a number between 0 and 1 and returns another number between 0 and 1.
-                easing(t) {
-                    return t;
-                },
-                // this animation is considered essential with respect to prefers-reduced-motion
-                essential: true,
-            });*/
+            console.log("New:", lon, lat, dist);
 
             /* CREATE BUFFER */
             var point = turf.point([lon, lat]);
-            var buffered = turf.buffer(point, 500, { units: "meters" });
+            var buffered = turf.buffer(point, distance, { units: "meters" });
 
             // add point to show the searched address
-            map.addSource(`buffer ${lon}`, {
+            map.addSource(`buffer ${lon} ${dist}`, {
                 type: "geojson",
                 data: buffered,
             });
             map.addLayer({
-                id: `buffer-layer ${lon}`,
+                id: `buffer-layer ${lon} ${dist}`,
                 type: "line",
-                source: `buffer ${lon}`,
+                source: `buffer ${lon} ${dist}`,
                 paint: {
                     "line-color": "red",
                     "line-width": 5, // Set the color of the point
                 },
             });
+
+            // Calculate the bounding box of the polygon
+            var bbox = turf.bbox(buffered);
+
+            /* CREATE BUFFER */
             map.addSource(`address ${lon}`, {
                 type: "geojson",
                 data: {
@@ -223,6 +226,7 @@
                     coordinates: [lon, lat],
                 },
             });
+
             map.addLayer({
                 id: `address-layer ${lon}`,
                 type: "circle",
@@ -233,19 +237,16 @@
                 },
             });
 
-            // Get the coordinates of the polygon
+            // Get the coordinates of the buffer
             var coordinates = buffered.geometry.coordinates;
 
-            // Extract all coordinates of the polygon
+            // Extract all coordinates of the buffer
             var allCoordinates = [];
             coordinates.forEach(function (ring) {
                 ring.forEach(function (coord) {
                     allCoordinates.push(coord);
                 });
             });
-
-            // Calculate the bounding box of the polygon
-            var bbox = turf.bbox(buffered);
 
             // Fit the map to the bounding box
             map.fitBounds(
@@ -259,8 +260,6 @@
             alert("Sorry, no geocoding results for " + query);
         }
     };
-
-    console.log(ozFilter);
 </script>
 
 <main>
@@ -295,7 +294,7 @@
                     applyFilter();
                 }}
                 style="background-color: {spaFilter
-                    ? '#1e3765'
+                    ? '#2a6f97'
                     : ''}; color: {spaFilter ? 'white' : 'black'}"
                 >SITE PLAN</button
             ><button
@@ -305,8 +304,8 @@
                     applyFilter();
                 }}
                 style="background-color: {cdFilter
-                    ? '#1e3765'
-                    : ''}; color: {cdFilter ? 'white' : 'black'}"
+                    ? '#a9d6e5'
+                    : ''}"
                 >DRAFT CONDO</button
             ><button
                 class="application-button"
@@ -315,8 +314,8 @@
                     applyFilter();
                 }}
                 style="background-color: {sbFilter
-                    ? '#1e3765'
-                    : ''}; color: {sbFilter ? 'white' : 'black'}"
+                    ? '#a9d6e5'
+                    : ''}"
                 >SUBDIVISION</button
             ><button
                 class="application-button"
@@ -325,23 +324,23 @@
                     applyFilter();
                 }}
                 style="background-color: {plFilter
-                    ? '#1e3765'
-                    : ''}; color: {plFilter ? 'white' : 'black'}">PL</button
+                    ? '#a9d6e5'
+                    : ''}">PL</button
             >
 
             <!--SEARCH ADDRESS-->
         </div>
         <h3><b>Search Address</b></h3>
+        <input bind:value={query} placeholder="i.e. 100 St George St" />
         <input
-            bind:value={query}
-            placeholder="i.e. 100 St George St, Toronto"
+            bind:value={distance}
+            placeholder="i.e. 500, distance is in meters"
         />
         <button
             class="address-button"
             on:click={getResults}
             disabled={query.length < 1}>Search</button
         >
-
         {#if popupContent}
             {#each info as inf, i}
                 <div class="application">
