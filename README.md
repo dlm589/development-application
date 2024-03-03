@@ -1,3 +1,6 @@
-An alternative website to view Toronto's Development Applications
 
-(https://dlm589.github.io/development-application/)
+<h1>Toronto's Development Application Viewer</h1>
+
+https://dlm589.github.io/development-application/
+
+![Toront Skyline!](/static/web-card.png "Toront Skyline")
