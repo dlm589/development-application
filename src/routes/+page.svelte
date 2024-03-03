@@ -50,7 +50,6 @@
             container: "map",
             style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json", //'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
             center: [-79.9, 43.68], // starting position
-            zoom: 11, // starting zoom;
             minZoom: 2,
             maxZoom: 19,
             projection: "globe",
