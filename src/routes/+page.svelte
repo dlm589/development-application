@@ -49,7 +49,7 @@
         map = new maplibregl.Map({
             container: "map",
             style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json", //'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-            center: [-79.4, 43.68], // starting position
+            center: [-79.9, 43.68], // starting position
             zoom: 11, // starting zoom;
             minZoom: 2,
             maxZoom: 19,
@@ -111,7 +111,7 @@
 
         map.fitBounds([
             [-79.14904366238247, 43.87527014932047],
-            [-79.70668327438583, 43.56196116510192],
+            [-79.60668327438583, 43.56196116510192],
         ]);
         map.on("mouseenter", "development-ID", () => {
             map.getCanvas().style.cursor = "pointer";
@@ -167,7 +167,7 @@
         "https://nominatim.openstreetmap.org/search.php?format=jsonv2&q=";
 
     const getResults = async () => {
-        results = await fetch(baseUrl + query).then((res) => res.json());
+        results = await fetch(baseUrl + query + ", Toronto").then((res) => res.json());
         if (results.length > 0) {
             //this is to remove the previous address point searched (if true)
             if (map.getSource(`address ${lon}`)) {
