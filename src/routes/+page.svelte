@@ -3,7 +3,7 @@
     import maplibregl from "maplibre-gl";
     import development from "../data/development-application.geo.json";
     import * as turf from "@turf/turf"; // this is for fitting the map boundary to GTA municipalities
-
+    import positron from "../data/positron.json";
     //import property_boundary from "../data/property-boundary.geo.json"
     //import  from "../data/transit-lines.geo.json";
     //import notVancouverPolygon from '../../data/not-vancouver-polygon.geo.json';
@@ -50,7 +50,7 @@
     onMount(() => {
         map = new maplibregl.Map({
             container: "map",
-            style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json", //'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+            style: positron, //'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
             center: [-79.9, 43.68], // starting position
             minZoom: 2,
             maxZoom: 19,
@@ -58,6 +58,8 @@
             scrollZoom: true,
             attributionControl: false,
         });
+
+        
 
         // Adding zoom and rotation controls to the map
         // Adding additional layers from geojson
