@@ -15,6 +15,7 @@
     let application = [];
     let description = [];
     let application_url = [];
+    let submission_date = [];
     let popupContent = false;
     let query = ""; //This is the input address from users.
     let distance = ""; // This is the input for buffer distance
@@ -23,28 +24,172 @@
     let lon;
     let results;
 
-    // Filter
+    // Application Type Filter
+    let allFilter = false;
     let ozFilter = false;
     let spaFilter = false;
     let sbFilter = false;
     let plFilter = false;
     let cdFilter = false;
 
-    function applyFilter() {
-        const filter = [];
+    //Height Filter
+    let highFilter = false;
+    let midFilter = false;
+    let lowFilter = false;
+    let noHFilter = false;
 
-        if (ozFilter) filter.push(["==", ["get", "APPLICATION_TYPE"], "OZ"]);
-        if (spaFilter) filter.push(["==", ["get", "APPLICATION_TYPE"], "SA"]);
-        if (sbFilter) filter.push(["==", ["get", "APPLICATION_TYPE"], "SB"]);
-        if (plFilter) filter.push(["==", ["get", "APPLICATION_TYPE"], "PL"]);
-        if (cdFilter) filter.push(["==", ["get", "APPLICATION_TYPE"], "CD"]);
+    //Date Filter
+    let oneMonthFilter = false;
+    let twoMonthFilter = false;
+    let threeMonthFilter = false;
+    let sixMonthFilter = false;
+    let yearFilter = false;
 
-        map.setFilter("development-ID", ["any", ...filter]);
-        console.log(ozFilter);
-        console.log(spaFilter);
-        console.log(sbFilter);
-        console.log(plFilter);
-        console.log(cdFilter);
+    let applicationfilter = [];
+    let datefilter = [];
+    let heightfilter = [];
+
+    function applicationFilter() {
+        applicationfilter = [];
+
+        if (ozFilter) {
+            applicationfilter.push(["==", ["get", "APPLICATION_TYPE"], "OZ"]);
+        }
+        if (spaFilter) {
+            applicationfilter.push(["==", ["get", "APPLICATION_TYPE"], "SA"]);
+        }
+        if (sbFilter) {
+            applicationfilter.push(["==", ["get", "APPLICATION_TYPE"], "SB"]);
+        }
+        if (plFilter) {
+            applicationfilter.push(["==", ["get", "APPLICATION_TYPE"], "PL"]);
+        }
+        if (cdFilter) {
+            applicationfilter.push(["==", ["get", "APPLICATION_TYPE"], "CD"]);
+        }
+
+        if (datefilter.length > 0) {
+            var filter = [
+                "all",
+                ["any", ...applicationfilter],
+                ["any", ...datefilter],
+            ];
+        } else if (heightfilter.length > 0) {
+            var filter = [
+                "all",
+                ["any", ...applicationfilter],
+                ["any", ...heightfilter],
+            ];
+        } else if (heightfilter.length > 0 && datefilter.length > 0) {
+            var filter = [
+                "all",
+                ["any", ...applicationfilter],
+                ["any", ...heightfilter],
+                ["any", ...datefilter],
+            ];
+        } else {
+            var filter = ["any", ...applicationfilter];
+        }
+
+        map.setFilter("development-ID", filter);
+    }
+
+    /* filtering date */
+    function dateFilter() {
+        datefilter = [];
+
+        if (oneMonthFilter) {
+            datefilter.push(["<=", ["get", "DATE_DISTANCE"], 30.0]);
+        }
+        if (twoMonthFilter) {
+            datefilter.push(["<=", ["get", "DATE_DISTANCE"], 60.0]);
+        }
+        if (threeMonthFilter) {
+            datefilter.push(["<=", ["get", "DATE_DISTANCE"], 90.0]);
+        }
+        if (sixMonthFilter) {
+            datefilter.push(["<=", ["get", "DATE_DISTANCE"], 180.0]);
+        }
+        if (yearFilter) {
+            datefilter.push(["<=", ["get", "DATE_DISTANCE"], 365.0]);
+        }
+
+        if (applicationfilter.length > 0) {
+            var filter = [
+                "all",
+                ["any", ...applicationfilter],
+                ["any", ...datefilter],
+            ];
+        } else if (heightfilter.length > 0) {
+            var filter = [
+                "all",
+                ["any", ...heightfilter],
+                ["any", ...datefilter],
+            ];
+        } else if (heightfilter.length > 0 && applicationfilter.length > 0) {
+            var filter = [
+                "all",
+                ["any", ...applicationfilter],
+                ["any", ...heightfilter],
+                ["any", ...datefilter],
+            ];
+        } else {
+            var filter = ["any", ...datefilter];
+        }
+
+        map.setFilter("development-ID", filter);
+    }
+
+    /* filtering height */
+
+    function heightFilter() {
+        heightfilter = [];
+
+        if (highFilter)
+            heightfilter.push([
+                "==",
+                ["get", "HEIGHT"],
+                "High-rise (15+ Storeys)",
+            ]);
+        if (midFilter)
+            heightfilter.push([
+                "==",
+                ["get", "HEIGHT"],
+                "Mid-rise (5-14 Storeys)",
+            ]);
+        if (lowFilter)
+            heightfilter.push([
+                "==",
+                ["get", "HEIGHT"],
+                "Low-rise (0-4 Storeys)",
+            ]);
+        if (noHFilter)
+            heightfilter.push(["==", ["get", "HEIGHT"], "No Height Info"]);
+
+        if (applicationfilter.length > 0) {
+            var filter = [
+                "all",
+                ["any", ...applicationfilter],
+                ["any", ...heightfilter],
+            ];
+        } else if (datefilter.length > 0) {
+            var filter = [
+                "all",
+                ["any", ...heightfilter],
+                ["any", ...datefilter],
+            ];
+        } else if (datefilter.length > 0 && applicationfilter.length > 0) {
+            var filter = [
+                "all",
+                ["any", ...applicationfilter],
+                ["any", ...heightfilter],
+                ["any", ...datefilter],
+            ];
+        } else {
+            var filter = ["any", ...heightfilter];
+        }
+
+        map.setFilter("development-ID", filter);
     }
 
     onMount(() => {
@@ -58,8 +203,6 @@
             scrollZoom: true,
             attributionControl: false,
         });
-
-        
 
         // Adding zoom and rotation controls to the map
         // Adding additional layers from geojson
@@ -122,13 +265,14 @@
         map.on("mouseleave", "development-ID", () => {
             map.getCanvas().style.cursor = "";
         });
-        map.on("click", (e)=>{
+        /*
+        map.on("click", (e) => {
             if (!e.features || e.features.length === 0) {
-        // Close properties here
-        console.log('Clicked elsewhere on the map');
-      }
-        })
-
+                // Close properties here
+                console.log("Clicked elsewhere on the map");
+            }
+        });
+        */
         map.on("click", "development-ID", (e) => {
             const tolerance = 0.0; // Adjust the tolerance as needed
             const clickedPoint = e.point;
@@ -142,16 +286,18 @@
 
                 { layers: ["development-ID"] },
             );
-            console.log(clickedPoint);
+
             address = [];
             info = [];
             height = [];
             application = [];
             description = [];
             application_url = [];
+            submission_date = [];
             // Process the overlapping points
             overlappingPoints.forEach((point) => {
-                //console.log(point);
+                console.log(point);
+            
 
                 address.push(point.properties.STREET);
                 info.push(point.properties.INFO);
@@ -159,6 +305,7 @@
                 application.push(point.properties["APPLICATION#"]);
                 description.push(point.properties.DESCRIPTION);
                 application_url.push(point.properties.APPLICATION_URL);
+                submission_date.push(point.properties.DATE)
             });
 
             map.setFilter("development-select", [
@@ -189,8 +336,8 @@
                 map.removeSource(`buffer ${lon} ${dist}`);
                 map.removeLayer(`buffer-layer ${lon} ${dist}`);
             }
-            if (distance ==""){
-                distance = 500
+            if (distance == "") {
+                distance = 500;
             }
             dist = distance;
             //get long - lat
@@ -279,11 +426,40 @@
 
         <!-- THIS BUTTON ALLOWS PEOPLE TO SELECT DEVELOPMENT APPLICATION TYPES-->
         <div class="buttons-box">
+            <h3>Filter By Application Type</h3>
+            <button
+                class="application-button"
+                on:click={() => {
+                    allFilter = !allFilter;
+                    map.setFilter("development-ID", null);
+                    applicationfilter = [];
+                    datefilter = [];
+                    heightfilter = [];
+                    ozFilter = false;
+                    spaFilter = false;
+                    cdFilter = false;
+                    sbFilter = false;
+                    plFilter = false;
+                    highFilter = false;
+                    midFilter = false;
+                    lowFilter = false;
+                    noHFilter = false;
+                    oneMonthFilter = false;
+                    twoMonthFilter = false;
+                    threeMonthFilter = false;
+                    sixMonthFilter = false;
+                    yearFilter = false;
+                }}
+                style="background-color: {allFilter
+                    ? '#1e3765'
+                    : ''}; color: {allFilter ? 'white' : 'black'}">ALL</button
+            >
             <button
                 class="application-button"
                 on:click={() => {
                     ozFilter = !ozFilter;
-                    applyFilter();
+                    allFilter = false;
+                    applicationFilter();
                 }}
                 style="background-color: {ozFilter
                     ? '#1e3765'
@@ -293,7 +469,8 @@
                 class="application-button"
                 on:click={() => {
                     spaFilter = !spaFilter;
-                    applyFilter();
+                    allFilter = false;
+                    applicationFilter();
                 }}
                 style="background-color: {spaFilter
                     ? '#2a6f97'
@@ -303,35 +480,138 @@
                 class="application-button"
                 on:click={() => {
                     cdFilter = !cdFilter;
-                    applyFilter();
+                    allFilter = false;
+                    applicationFilter();
                 }}
-                style="background-color: {cdFilter
-                    ? '#a9d6e5'
-                    : ''}"
+                style="background-color: {cdFilter ? '#a9d6e5' : ''}"
                 >DRAFT CONDO</button
             ><button
                 class="application-button"
                 on:click={() => {
                     sbFilter = !sbFilter;
-                    applyFilter();
+                    allFilter = false;
+                    applicationFilter();
                 }}
-                style="background-color: {sbFilter
-                    ? '#a9d6e5'
-                    : ''}"
+                style="background-color: {sbFilter ? '#a9d6e5' : ''}"
                 >SUBDIVISION</button
             ><button
                 class="application-button"
                 on:click={() => {
                     plFilter = !plFilter;
-                    applyFilter();
+                    allFilter = false;
+                    applicationFilter();
                 }}
-                style="background-color: {plFilter
-                    ? '#a9d6e5'
-                    : ''}">PL</button
+                style="background-color: {plFilter ? '#a9d6e5' : ''}">PL</button
+            > <br />
+            <h3>Filter By Building Height</h3>
+            <button
+                class="application-button"
+                on:click={() => {
+                    highFilter = !highFilter;
+                    allFilter = false;
+                    heightFilter();
+                }}
+                style="background-color: {highFilter ? '#a9d6e5' : ''}"
+                >High-rise (15+ Storeys)</button
+            ><button
+                class="application-button"
+                on:click={() => {
+                    midFilter = !midFilter;
+                    allFilter = false;
+                    heightFilter();
+                }}
+                style="background-color: {midFilter ? '#a9d6e5' : ''}"
+                >Mid-rise (5-14 Storeys)</button
+            ><button
+                class="application-button"
+                on:click={() => {
+                    lowFilter = !lowFilter;
+                    allFilter = false;
+                    heightFilter();
+                }}
+                style="background-color: {lowFilter ? '#a9d6e5' : ''}"
+                >Low-rise (0-4 Storeys)</button
+            ><button
+                class="application-button"
+                on:click={() => {
+                    noHFilter = !noHFilter;
+                    allFilter = false;
+                    heightFilter();
+                }}
+                style="background-color: {noHFilter ? '#a9d6e5' : ''}"
+                >No Height Info</button
             >
 
-            <!--SEARCH ADDRESS-->
+            <!--SEARCH BY DATE-->
+            <h3>Filter By Date</h3>
+            <button
+                class="application-button"
+                on:click={() => {
+                    oneMonthFilter = !oneMonthFilter;
+                    twoMonthFilter = false;
+                    threeMonthFilter = false;
+                    sixMonthFilter = false;
+                    yearFilter = false;
+                    allFilter = false;
+                    dateFilter();
+                }}
+                style="background-color: {oneMonthFilter ? '#a9d6e5' : ''}"
+                >1 Month</button
+            ><button
+                class="application-button"
+                on:click={() => {
+                    twoMonthFilter = !twoMonthFilter;
+                    oneMonthFilter = false;
+                    threeMonthFilter = false;
+                    sixMonthFilter = false;
+                    yearFilter = false;
+                    allFilter = false;
+                    dateFilter();
+                }}
+                style="background-color: {twoMonthFilter ? '#a9d6e5' : ''}"
+                >2 Months</button
+            ><button
+                class="application-button"
+                on:click={() => {
+                    threeMonthFilter = !threeMonthFilter;
+                    oneMonthFilter = false;
+                    twoMonthFilter = false;
+                    sixMonthFilter = false;
+                    yearFilter = false;
+                    allFilter = false;
+                    dateFilter();
+                }}
+                style="background-color: {threeMonthFilter ? '#a9d6e5' : ''}"
+                >3 Months</button
+            ><button
+                class="application-button"
+                on:click={() => {
+                    sixMonthFilter = !sixMonthFilter;
+                    oneMonthFilter = false;
+                    twoMonthFilter = false;
+                    threeMonthFilter = false;
+                    yearFilter = false;
+                    allFilter = false;
+                    dateFilter();
+                }}
+                style="background-color: {sixMonthFilter ? '#a9d6e5' : ''}"
+                >6 Months</button
+            ><button
+                class="application-button"
+                on:click={() => {
+                    yearFilter = !yearFilter;
+                    oneMonthFilter = false;
+                    twoMonthFilter = false;
+                    threeMonthFilter = false;
+                    sixMonthFilter = false;
+                    allFilter = false;
+                    dateFilter();
+                }}
+                style="background-color: {yearFilter ? '#a9d6e5' : ''}"
+                >12 Months</button
+            >
         </div>
+
         <h3><b>Search Address</b></h3>
         <input bind:value={query} placeholder="i.e. 100 St George St" />
         <input
@@ -344,6 +624,7 @@
             disabled={query.length < 1}>Search</button
         >
         {#if popupContent}
+        <h2>Development Applications</h2>
             {#each info as inf, i}
                 <div class="application">
                     <h2>{address[i]}</h2>
@@ -356,10 +637,9 @@
                             >
                         </h3>
                     {/if}
-                    <p>{info[i]}</p>
-                    <p>{height[i]}</p>
-
+                    <p>{submission_date[i]} <br> {info[i]} <br> {height[i]}</p>
                     <p>{description[i]}</p>
+                    <p></p>
                 </div>
             {/each}
         {/if}
@@ -395,7 +675,7 @@
         left: 10px;
         width: 35vw - 20px;
         height: auto;
-        padding-top: 2px;
+        padding-top: 0px;
         background-color: #d3d3d3;
         margin-right: 20px;
         margin-top: 2px;
@@ -407,7 +687,6 @@
         width: 35vw - 20px;
         height: auto;
         padding-top: 2px;
-        background-color: white;
         margin-right: 20px;
         position: relative;
     }
@@ -452,9 +731,11 @@
         font-weight: bold;
     }
     p {
+        padding-top: 0px;
         padding-left: 10px;
         padding-right: 20px;
-        padding-bottom: 10px;
+        padding-bottom: 5px;
+        margin-bottom:20px;
     }
     a {
         color: #41729f;
