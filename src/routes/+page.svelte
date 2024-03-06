@@ -51,7 +51,9 @@
 
     function applicationFilter() {
         applicationfilter = [];
+        map.setFilter("development-select", ["==", ["get", "APPLICATION#"], ""]);
 
+        // when true, set filter
         if (ozFilter) {
             applicationfilter.push(["==", ["get", "APPLICATION_TYPE"], "OZ"]);
         }
@@ -68,18 +70,23 @@
             applicationfilter.push(["==", ["get", "APPLICATION_TYPE"], "CD"]);
         }
 
-        if (datefilter.length > 0) {
+        /* Sorting the filters with other filters, this ensures that filters from the same
+        filter function are sorted together */
+
+        if ((datefilter.length > 0) & (heightfilter.length == 0)) {
             var filter = [
                 "all",
                 ["any", ...applicationfilter],
                 ["any", ...datefilter],
             ];
-        } else if (heightfilter.length > 0) {
+            //console.log("Date", filter)
+        } else if (heightfilter.length > 0 && datefilter.length == 0) {
             var filter = [
                 "all",
                 ["any", ...applicationfilter],
                 ["any", ...heightfilter],
             ];
+            //console.log("Height", filter)
         } else if (heightfilter.length > 0 && datefilter.length > 0) {
             var filter = [
                 "all",
@@ -87,62 +94,38 @@
                 ["any", ...heightfilter],
                 ["any", ...datefilter],
             ];
+            //console.log("Height, Date", filter)
         } else {
             var filter = ["any", ...applicationfilter];
+            //console.log("Application", filter)
         }
 
-        map.setFilter("development-ID", filter);
-    }
-
-    /* filtering date */
-    function dateFilter() {
-        datefilter = [];
-
-        if (oneMonthFilter) {
-            datefilter.push(["<=", ["get", "DATE_DISTANCE"], 30.0]);
+        /* When people unclick buttons, sometimes all the points can disappear,
+         to solve this problem, we can remove filters with nothing but "any" in there */
+        for (let i = 0; i < filter.length; i++) {
+            // if the one of the filters in the filter list only has "any" left, then
+            // length is 1, so remove it.
+            if (filter[i].length == 1) {
+                filter.splice(filter.indexOf(filter[i]), 1);
+            }
         }
-        if (twoMonthFilter) {
-            datefilter.push(["<=", ["get", "DATE_DISTANCE"], 60.0]);
-        }
-        if (threeMonthFilter) {
-            datefilter.push(["<=", ["get", "DATE_DISTANCE"], 90.0]);
-        }
-        if (sixMonthFilter) {
-            datefilter.push(["<=", ["get", "DATE_DISTANCE"], 180.0]);
-        }
-        if (yearFilter) {
-            datefilter.push(["<=", ["get", "DATE_DISTANCE"], 365.0]);
-        }
-
-        if (applicationfilter.length > 0) {
-            var filter = [
-                "all",
-                ["any", ...applicationfilter],
-                ["any", ...datefilter],
-            ];
-        } else if (heightfilter.length > 0) {
-            var filter = [
-                "all",
-                ["any", ...heightfilter],
-                ["any", ...datefilter],
-            ];
-        } else if (heightfilter.length > 0 && applicationfilter.length > 0) {
-            var filter = [
-                "all",
-                ["any", ...applicationfilter],
-                ["any", ...heightfilter],
-                ["any", ...datefilter],
-            ];
+        if (filter.length == 2) {
+            //then there
+            filter[0] = "any";
+            map.setFilter("development-ID", filter);
+        } else if (filter.length == 1) {
+            // This is to remove all filters when there is just one "any" in the filter
+            map.setFilter("development-ID", null);
+            allFilter = true;
         } else {
-            var filter = ["any", ...datefilter];
+            map.setFilter("development-ID", filter);
         }
-
-        map.setFilter("development-ID", filter);
     }
 
     /* filtering height */
 
     function heightFilter() {
+        map.setFilter("development-select", ["==", ["get", "APPLICATION#"], ""]);
         heightfilter = [];
 
         if (highFilter)
@@ -166,18 +149,20 @@
         if (noHFilter)
             heightfilter.push(["==", ["get", "HEIGHT"], "No Height Info"]);
 
-        if (applicationfilter.length > 0) {
+        if (applicationfilter.length > 0 && datefilter.length == 0) {
             var filter = [
                 "all",
                 ["any", ...applicationfilter],
                 ["any", ...heightfilter],
             ];
-        } else if (datefilter.length > 0) {
+            //console.log("Application", filter);
+        } else if ((datefilter.length > 0) & (applicationfilter.length == 0)) {
             var filter = [
                 "all",
                 ["any", ...heightfilter],
                 ["any", ...datefilter],
             ];
+            //console.log("Date", filter);
         } else if (datefilter.length > 0 && applicationfilter.length > 0) {
             var filter = [
                 "all",
@@ -185,11 +170,105 @@
                 ["any", ...heightfilter],
                 ["any", ...datefilter],
             ];
+            //console.log("Date & Application", filter);
         } else {
             var filter = ["any", ...heightfilter];
+            //console.log("Height", filter);
         }
 
-        map.setFilter("development-ID", filter);
+        /* When people unclick buttons, sometimes all the points can disappear,
+         to solve this problem, we can remove filters with nothing but "any" in there */
+        for (let i = 0; i < filter.length; i++) {
+            // if the one of the filters in the filter list only has "any" left, then
+            // length is 1, so remove it.
+            if (filter[i].length == 1) {
+                filter.splice(filter.indexOf(filter[i]), 1);
+            }
+        }
+        if (filter.length == 2) {
+            //then there
+            
+            
+            filter[0] = "any";
+            
+            map.setFilter("development-ID", filter);
+        } else if (filter.length == 1) {
+            // This is to remove all filters when there is just one "any" in the filter
+            map.setFilter("development-ID", null);
+            allFilter = true;
+        } else {
+            map.setFilter("development-ID", filter);
+        }
+    }
+
+    /* filtering date */
+    function dateFilter() {
+        map.setFilter("development-select", ["==", ["get", "APPLICATION#"], ""]);
+
+        datefilter = [];
+
+        if (oneMonthFilter) {
+            datefilter.push(["<=", ["get", "DATE_DISTANCE"], 30.0]);
+        }
+        if (twoMonthFilter) {
+            datefilter.push(["<=", ["get", "DATE_DISTANCE"], 60.0]);
+        }
+        if (threeMonthFilter) {
+            datefilter.push(["<=", ["get", "DATE_DISTANCE"], 90.0]);
+        }
+        if (sixMonthFilter) {
+            datefilter.push(["<=", ["get", "DATE_DISTANCE"], 180.0]);
+        }
+        if (yearFilter) {
+            datefilter.push(["<=", ["get", "DATE_DISTANCE"], 365.0]);
+        }
+
+        if (applicationfilter.length > 0 && heightfilter == 0) {
+            var filter = [
+                "all",
+                ["any", ...applicationfilter],
+                ["any", ...datefilter],
+            ];
+            console.log("Application", filter);
+        } else if (heightfilter.length > 0 && applicationfilter.length == 0) {
+            var filter = [
+                "all",
+                ["any", ...heightfilter],
+                ["any", ...datefilter],
+            ];
+            console.log("Height", filter);
+        } else if (heightfilter.length > 0 && applicationfilter.length > 0) {
+            var filter = [
+                "all",
+                ["any", ...applicationfilter],
+                ["any", ...heightfilter],
+                ["any", ...datefilter],
+            ];
+            console.log("Height & Application", filter);
+        } else {
+            var filter = ["any", ...datefilter];
+            console.log("Date", filter);
+        }
+
+        /* When people unclick buttons, sometimes all the points can disappear,
+         to solve this problem, we can remove filters with nothing but "any" in there */
+        for (let i = 0; i < filter.length; i++) {
+            // if the one of the filters in the filter list only has "any" left, then
+            // length is 1, so remove it.
+            if (filter[i].length == 1) {
+                filter.splice(filter.indexOf(filter[i]), 1);
+            }
+        }
+        if (filter.length == 2) {
+            filter[0] = "any";
+            map.setFilter("development-ID", filter);
+        } else if (filter.length == 1) {
+            // This is to remove all filters when there is just one "any" in the filter
+            map.setFilter("development-ID", null);
+            allFilter = true;
+        } else {
+            map.setFilter("development-ID", filter);
+        }
     }
 
     onMount(() => {
@@ -208,12 +287,10 @@
         // Adding additional layers from geojson
         map.on("load", function () {
             const layers = map.getStyle().layers;
-
             map.addSource("development", {
                 type: "geojson",
                 data: development,
             });
-
             map.addLayer({
                 id: "development-ID",
                 type: "circle",
@@ -230,7 +307,6 @@
                     ],
                     "circle-radius": 5,
                 },
-                //before: "transit-line-bold-ID",
             });
             map.addLayer({
                 id: "development-select",
@@ -251,28 +327,23 @@
                     "circle-stroke-color": "red",
                     "circle-stroke-width": 2,
                 },
-                //before: "transit-line-bold-ID",
             });
         });
 
+        // Boundary of map
         map.fitBounds([
             [-79.14904366238247, 43.87527014932047],
             [-79.60668327438583, 43.56196116510192],
         ]);
+
         map.on("mouseenter", "development-ID", () => {
             map.getCanvas().style.cursor = "pointer";
         });
+
         map.on("mouseleave", "development-ID", () => {
             map.getCanvas().style.cursor = "";
         });
-        /*
-        map.on("click", (e) => {
-            if (!e.features || e.features.length === 0) {
-                // Close properties here
-                console.log("Clicked elsewhere on the map");
-            }
-        });
-        */
+
         map.on("click", "development-ID", (e) => {
             const tolerance = 0.0; // Adjust the tolerance as needed
             const clickedPoint = e.point;
@@ -286,7 +357,7 @@
 
                 { layers: ["development-ID"] },
             );
-
+            // clear the lists first, so old values don't interfere
             address = [];
             info = [];
             height = [];
@@ -294,18 +365,16 @@
             description = [];
             application_url = [];
             submission_date = [];
+
             // Process the overlapping points
             overlappingPoints.forEach((point) => {
-                console.log(point);
-            
-
                 address.push(point.properties.STREET);
                 info.push(point.properties.INFO);
                 height.push(point.properties.HEIGHT);
                 application.push(point.properties["APPLICATION#"]);
                 description.push(point.properties.DESCRIPTION);
                 application_url.push(point.properties.APPLICATION_URL);
-                submission_date.push(point.properties.DATE)
+                submission_date.push(point.properties.DATE);
             });
 
             map.setFilter("development-select", [
@@ -327,7 +396,6 @@
         results = await fetch(baseUrl + query + ", Toronto").then((res) =>
             res.json(),
         );
-        console.log("Old:", lon, lat, dist);
         if (results.length > 0) {
             //this is to remove the previous address point searched (if true)
             if (map.getSource(`address ${lon}`)) {
@@ -343,7 +411,6 @@
             //get long - lat
             lat = +results[0].lat;
             lon = +results[0].lon;
-            console.log("New:", lon, lat, dist);
 
             /* CREATE BUFFER */
             var point = turf.point([lon, lat]);
@@ -483,7 +550,7 @@
                     allFilter = false;
                     applicationFilter();
                 }}
-                style="background-color: {cdFilter ? '#a9d6e5' : ''}"
+                style="background-color: {cdFilter ? '#a9d6e5' : ''}; color: 'black'"
                 >DRAFT CONDO</button
             ><button
                 class="application-button"
@@ -492,7 +559,7 @@
                     allFilter = false;
                     applicationFilter();
                 }}
-                style="background-color: {sbFilter ? '#a9d6e5' : ''}"
+                style="background-color: {sbFilter ? '#a9d6e5' : ''}; color: 'black'"
                 >SUBDIVISION</button
             ><button
                 class="application-button"
@@ -511,7 +578,7 @@
                     allFilter = false;
                     heightFilter();
                 }}
-                style="background-color: {highFilter ? '#a9d6e5' : ''}"
+                style="background-color: {highFilter ? '#a9d6e5' : ''}; color: 'black'"
                 >High-rise (15+ Storeys)</button
             ><button
                 class="application-button"
@@ -520,7 +587,7 @@
                     allFilter = false;
                     heightFilter();
                 }}
-                style="background-color: {midFilter ? '#a9d6e5' : ''}"
+                style="background-color: {midFilter ? '#a9d6e5' : ''}; color: 'black'"
                 >Mid-rise (5-14 Storeys)</button
             ><button
                 class="application-button"
@@ -529,7 +596,7 @@
                     allFilter = false;
                     heightFilter();
                 }}
-                style="background-color: {lowFilter ? '#a9d6e5' : ''}"
+                style="background-color: {lowFilter ? '#a9d6e5' : ''}; color: 'black'"
                 >Low-rise (0-4 Storeys)</button
             ><button
                 class="application-button"
@@ -538,7 +605,7 @@
                     allFilter = false;
                     heightFilter();
                 }}
-                style="background-color: {noHFilter ? '#a9d6e5' : ''}"
+                style="background-color: {noHFilter ? '#a9d6e5' : ''}; color: 'black'"
                 >No Height Info</button
             >
 
@@ -555,7 +622,7 @@
                     allFilter = false;
                     dateFilter();
                 }}
-                style="background-color: {oneMonthFilter ? '#a9d6e5' : ''}"
+                style="background-color: {oneMonthFilter ? '#a9d6e5' : ''}; color: 'black'"
                 >1 Month</button
             ><button
                 class="application-button"
@@ -568,7 +635,7 @@
                     allFilter = false;
                     dateFilter();
                 }}
-                style="background-color: {twoMonthFilter ? '#a9d6e5' : ''}"
+                style="background-color: {twoMonthFilter ? '#a9d6e5' : ''}; color: 'black'"
                 >2 Months</button
             ><button
                 class="application-button"
@@ -581,7 +648,7 @@
                     allFilter = false;
                     dateFilter();
                 }}
-                style="background-color: {threeMonthFilter ? '#a9d6e5' : ''}"
+                style="background-color: {threeMonthFilter ? '#a9d6e5' : ''}; color: 'black'"
                 >3 Months</button
             ><button
                 class="application-button"
@@ -594,7 +661,7 @@
                     allFilter = false;
                     dateFilter();
                 }}
-                style="background-color: {sixMonthFilter ? '#a9d6e5' : ''}"
+                style="background-color: {sixMonthFilter ? '#a9d6e5' : ''}; color: 'black'"
                 >6 Months</button
             ><button
                 class="application-button"
@@ -607,7 +674,7 @@
                     allFilter = false;
                     dateFilter();
                 }}
-                style="background-color: {yearFilter ? '#a9d6e5' : ''}"
+                style="background-color: {yearFilter ? '#a9d6e5' : ''}; color: 'black'"
                 >12 Months</button
             >
         </div>
@@ -617,14 +684,14 @@
         <input
             bind:value={distance}
             placeholder="i.e. 500, distance is in meters"
-        />
+        /> <br>
         <button
             class="address-button"
             on:click={getResults}
             disabled={query.length < 1}>Search</button
         >
         {#if popupContent}
-        <h2>Development Applications</h2>
+            <h2>Development Applications</h2>
             {#each info as inf, i}
                 <div class="application">
                     <h2>{address[i]}</h2>
@@ -637,7 +704,11 @@
                             >
                         </h3>
                     {/if}
-                    <p>{submission_date[i]} <br> {info[i]} <br> {height[i]}</p>
+                    <p>
+                        {submission_date[i]} <br />
+                        {info[i]} <br />
+                        {height[i]}
+                    </p>
                     <p>{description[i]}</p>
                     <p></p>
                 </div>
@@ -735,7 +806,7 @@
         padding-left: 10px;
         padding-right: 20px;
         padding-bottom: 5px;
-        margin-bottom:20px;
+        margin-bottom: 20px;
     }
     a {
         color: #41729f;
@@ -754,9 +825,10 @@
 
     /* Searh Address */
     input {
+        left: 10px;
         width: 24vw;
         height: 20px;
-        left: 10px;
+        
         color: #6d247a;
         border-width: 1px;
         margin-right: 5px;
@@ -764,19 +836,23 @@
         padding-left: 2px;
         padding-top: 3px;
         padding-bottom: 3px;
+
         font-weight: bold;
         position: relative;
         border-color: grey;
     }
     .address-button {
-        font-size: 12px;
-        width: auto;
+        
+        left: 10px;
+        width: 24%;
         height: 28px;
-        left: 0px;
-
-        margin-bottom: 20px;
+        
         border-width: 1px;
+        margin-right: 5px;
+
+        font-weight: bold;
         position: relative;
+        border-color: grey;
     }
     /* SCROLL BARS */
     ::-webkit-scrollbar {
