@@ -4,11 +4,7 @@
     import development from "../data/development-application.geo.json";
     import * as turf from "@turf/turf"; // this is for fitting the map boundary to GTA municipalities
     import positron from "../data/positron.json";
-    //import property_boundary from "../data/property-boundary.geo.json"
-    //import  from "../data/transit-lines.geo.json";
-    //import notVancouverPolygon from '../../data/not-vancouver-polygon.geo.json';
-    import geojsonvt from 'geojson-vt';
-
+    
     let map;
     let address = [];
     let info = [];
