@@ -23,6 +23,7 @@
 	"type": "module",
 	"dependencies": {
 		"@turf/turf": "^6.5.0",
+		"geojson-vt": "^3.2.1",
 		"maplibre-gl": "^4.1.0"
 	}
 }

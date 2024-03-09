@@ -7,6 +7,7 @@
     //import property_boundary from "../data/property-boundary.geo.json"
     //import  from "../data/transit-lines.geo.json";
     //import notVancouverPolygon from '../../data/not-vancouver-polygon.geo.json';
+    import geojsonvt from 'geojson-vt';
 
     let map;
     let address = [];
@@ -31,7 +32,7 @@
     let sbFilter = false;
     let plFilter = false;
     let cdFilter = false;
-
+    
     //Height Filter
     let highFilter = false;
     let midFilter = false;
@@ -276,7 +277,7 @@
             container: "map",
             style: positron, //'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
             center: [-79.9, 43.68], // starting position
-            minZoom: 2,
+            minZoom: 11,
             maxZoom: 19,
             projection: "globe",
             scrollZoom: true,
@@ -792,7 +793,6 @@
 
         padding-top: 10px;
         padding-left: 10px;
-
         /*padding-bottom: 3px;*/
         margin: 0px;
         margin-bottom: 0px;
