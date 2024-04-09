@@ -496,6 +496,7 @@
                 type: "geojson",
                 data: buffered,
             });
+            
             map.addLayer({
                 id: `buffer-layer ${lon} ${dist}`,
                 type: "line",
@@ -557,7 +558,9 @@
     <div id="map" class="map" />
 
     <div class="info-panel">
-        <h1>Development Applications in Toronto</h1>
+        <h1>Application Information Centre</h1>
+
+        <p>Last Updated: April 09, 2024</p>
 
         <!-- THIS BUTTON ALLOWS PEOPLE TO SELECT DEVELOPMENT APPLICATION TYPES-->
         <div class="buttons-box">
