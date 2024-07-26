@@ -296,7 +296,7 @@
             container: "map",
             style: positron, //'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
             center: [-79.9, 43.68], // starting position
-            minZoom: 11,
+            minZoom: 9,
             maxZoom: 19,
             projection: "globe",
             scrollZoom: true,
@@ -560,7 +560,7 @@
     <div class="info-panel">
         <h1>Application Information Centre</h1>
 
-        <p>Last Updated: April 09, 2024</p>
+        <p>Last Updated: July 26, 2024</p>
 
         <!-- THIS BUTTON ALLOWS PEOPLE TO SELECT DEVELOPMENT APPLICATION TYPES-->
         <div class="buttons-box">
