@@ -31,7 +31,7 @@
     let results;
 
     // Application Type Filter
-    let allFilter = false;
+    let allFilter = true;
     let ozFilter = false;
     let spaFilter = false;
     let sbFilter = false;
@@ -564,7 +564,15 @@
                 class="application-button"
                 on:click={() => {
                     allFilter = !allFilter;
-                    map.setFilter("development-ID", null);
+                    console.log(allFilter)
+                    if (allFilter == true){
+                        map.setFilter("development-ID", null);
+                    } else {
+                        map.setFilter("development-ID", ["==",
+                        ["get", "APPLICATION#"],
+                        "",]);
+                    }
+                    
                     applicationfilter = [];
                     datefilter = [];
                     heightfilter = [];
@@ -620,7 +628,7 @@
                 }}
                 style="background-color: {cdFilter
                     ? '#a9d6e5'
-                    : ''}; color: 'black'">DRAFT CONDO</button
+                    : ''}; color: {cdFilter ? 'black' : 'black'}">DRAFT CONDO</button
             ><button
                 class="application-button"
                 on:click={() => {
@@ -630,7 +638,7 @@
                 }}
                 style="background-color: {sbFilter
                     ? '#a9d6e5'
-                    : ''}; color: 'black'">SUBDIVISION</button
+                    : ''}; color: {sbFilter ? 'black' : 'black'}">SUBDIVISION</button
             ><button
                 class="application-button"
                 on:click={() => {
@@ -638,7 +646,7 @@
                     allFilter = false;
                     applicationFilter();
                 }}
-                style="background-color: {plFilter ? '#a9d6e5' : ''}">PL</button
+                style="background-color: {plFilter ? '#a9d6e5' : ''}; color: {plFilter ? 'black' : 'black'}">PL</button
             > <button
             class="application-button"
             on:click={() => {
@@ -646,7 +654,7 @@
                 allFilter = false;
                 applicationFilter();
             }}
-            style="background-color: {mvFilter ? '#DAA520' : ''}">MV</button
+            style="background-color: {mvFilter ? '#DAA520' : ''}; color: {mvFilter ? 'white' : 'black'}">MV</button
                 > <button
                 class="application-button"
                 on:click={() => {
@@ -654,7 +662,7 @@
                     allFilter = false;
                     applicationFilter();
                 }}
-                style="background-color: {coFilter ? '#a9d6e5' : ''}">CO</button
+                style="background-color: {coFilter ? '#a9d6e5' : ''}; color: {coFilter ? 'black' : 'black'}">CO</button
             > <br />
             <h3>Filter By Building Height</h3>
             <button
@@ -910,6 +918,7 @@
         width: auto;
         height: 28px;
         left: 10px;
+        color: black;
         margin-right: 5px;
         margin-bottom: 5px;
         border-width: 0px;
@@ -940,7 +949,7 @@
         width: 24%;
         height: 28px;
 
-        border-width: 1px;
+        border-width: 0px;
         margin-right: 5px;
 
         font-weight: bold;
