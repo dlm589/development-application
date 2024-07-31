@@ -37,6 +37,8 @@
     let sbFilter = false;
     let plFilter = false;
     let cdFilter = false;
+    let mvFilter = false;
+    let coFilter = false;
 
     //Height Filter
     let highFilter = false;
@@ -78,6 +80,12 @@
         }
         if (cdFilter) {
             applicationfilter.push(["==", ["get", "APPLICATION_TYPE"], "CD"]);
+        }
+        if (mvFilter) {
+            applicationfilter.push(["==", ["get", "APPLICATION_TYPE"], "MV"]);
+        }
+        if (coFilter) {
+            applicationfilter.push(["==", ["get", "APPLICATION_TYPE"], "CO"]);
         }
 
         /* Sorting the filters with other filters, this ensures that filters from the same
@@ -325,13 +333,13 @@
 
                 map.addLayer({
                     "id": `ward${num}_layer`,
-                    "type": "fill",
+                    "type": "line",
                     "source": `ward${num}`,
                     "source-layer": `property_ward_${num}`,
                     "layout": {},
                     "paint": {
-                        "fill-color": "#888888", // Border color
-                        "fill-opacity": 0.2, // Border width
+                        "line-color": "#888888", // Border color
+                        "line-width": 0.2, // Border width
                     },
                 });
 
@@ -353,6 +361,8 @@
                         "#1e3765",
                         "SA",
                         "#2a6f97",
+                        "MV",
+                        "#DAA520",
                         "#a9d6e5",
                     ],
                     "circle-radius": 5,
@@ -364,15 +374,8 @@
                 source: "development",
                 filter: ["==", ["get", "APPLICATION#"], ""],
                 paint: {
-                    "circle-color": [
-                        "match",
-                        ["get", "APPLICATION_TYPE"],
-                        "OZ",
-                        "#1e3765",
-                        "SA",
-                        "#2a6f97",
-                        "#a9d6e5",
-                    ],
+                    "circle-color": '#000000',
+                    "circle-opacity": 0,
                     "circle-radius": 5,
                     "circle-stroke-color": "red",
                     "circle-stroke-width": 2,
@@ -385,24 +388,7 @@
                     e.features[0].properties.Aream2,
                 );
             });
-            /*
-            for (let i = 0; i < 25; i++) {
-                map.addSource("ABC", {
-                    type: "geojson",
-                    data: wards[i],
-                });
 
-                map.addLayer({
-                    id: `ward-${i+1}`,
-                    type: "line",
-                    source: "uppertier",
-                    layout: {},
-                    paint: {
-                        "line-color": "grey", // Border color
-                        "line-width": 3, // Border width
-                    },
-                });
-            }*/
         });
 
         // Boundary of map
@@ -449,15 +435,24 @@
                 application.push(point.properties["APPLICATION#"]);
                 description.push(point.properties.DESCRIPTION);
                 application_url.push(point.properties.APPLICATION_URL);
-                submission_date.push(point.properties.DATE);
+                submission_date.push(point.properties.DATE_SUBMITTED);
             });
-
-            map.setFilter("development-select", [
+            if (application[0] != null){
+                map.setFilter("development-select", [
                 "==",
                 ["get", "APPLICATION#"],
                 application[0],
             ]);
 
+            } else {
+                map.setFilter("development-select", [
+                "==",
+                ["get", "STREET"],
+                address[0],
+            ]);
+            }
+            
+            console.log(application)
             //$: title = e.features[0].properties.CSDNAME;
 
             popupContent = true;
@@ -560,7 +555,7 @@
     <div class="info-panel">
         <h1>Application Information Centre</h1>
 
-        <p>Last Updated: July 26, 2024</p>
+        <p>Last Updated: July 31, 2024</p>
 
         <!-- THIS BUTTON ALLOWS PEOPLE TO SELECT DEVELOPMENT APPLICATION TYPES-->
         <div class="buttons-box">
@@ -578,6 +573,8 @@
                     cdFilter = false;
                     sbFilter = false;
                     plFilter = false;
+                    mvFilter = false;
+                    coFilter = false;
                     highFilter = false;
                     midFilter = false;
                     lowFilter = false;
@@ -642,6 +639,22 @@
                     applicationFilter();
                 }}
                 style="background-color: {plFilter ? '#a9d6e5' : ''}">PL</button
+            > <button
+            class="application-button"
+            on:click={() => {
+                mvFilter = !mvFilter;
+                allFilter = false;
+                applicationFilter();
+            }}
+            style="background-color: {mvFilter ? '#DAA520' : ''}">MV</button
+                > <button
+                class="application-button"
+                on:click={() => {
+                    coFilter = !coFilter;
+                    allFilter = false;
+                    applicationFilter();
+                }}
+                style="background-color: {coFilter ? '#a9d6e5' : ''}">CO</button
             > <br />
             <h3>Filter By Building Height</h3>
             <button
