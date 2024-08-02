@@ -469,10 +469,12 @@
         if (results.length > 0) {
             //this is to remove the previous address point searched (if true)
             if (map.getSource(`address ${lon}`)) {
-                map.removeSource(`address ${lon}`);
+                
                 map.removeLayer(`address-layer ${lon}`);
-                map.removeSource(`buffer ${lon} ${dist}`);
+                map.removeSource(`address ${lon}`);
+                
                 map.removeLayer(`buffer-layer ${lon} ${dist}`);
+                map.removeSource(`buffer ${lon} ${dist}`);
             }
             if (distance == "") {
                 distance = 500;
@@ -569,6 +571,9 @@
                         map.setFilter("development-ID", null);
                     } else {
                         map.setFilter("development-ID", ["==",
+                        ["get", "APPLICATION#"],
+                        "",]);
+                        map.setFilter("development-select", ["==",
                         ["get", "APPLICATION#"],
                         "",]);
                     }
